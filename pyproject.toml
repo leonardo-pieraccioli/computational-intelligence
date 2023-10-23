@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "computational-intelligence"
+version = "0.1.0"
+description = "Valuable code developed during the 2023-2024 course by Giovanni Squillero at Politecnico di Torino"
+authors = ["Leonardo Pieraccioli <leonardo.pieraccioli@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+numpy = "^1.26.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
