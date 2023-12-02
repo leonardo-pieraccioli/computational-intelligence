@@ -18,4 +18,7 @@ I want to complete this laboratory in the future, but I didn't have the time to 
 
 ## Laboratory 9: Genetic Algorithms
 
+Done in collaboration with @giovanni-violo
+
 Write a local-search algorithm (eg. an EA) able to solve the *Problem* instances 1, 2, 5, and 10 on a 1000-loci genomes, using a minimum number of fitness calls.
+
