@@ -11,7 +11,9 @@ The following tables are divided per
 - PC: _Problem Class_, i.e. the parameter of the `make_problem` function
 - PS _Parameter Set_ i.e. the set of parameter of the algorithm.
 
-### PC-10 PS-1
+## PS-1 
+
+### PC-10
 
 Parameter set:
 
@@ -53,7 +55,7 @@ Still no luck.
 
 Let's try with other Problem Classes.
 
-### PC-1 PS-1
+### PC-1
 
 We came back to 5000 max generations.
 
@@ -67,7 +69,7 @@ We came back to 5000 max generations.
 
 We can see the results are better.
 
-### PC-2 PS-2
+### PC-2
 
 | Iteration | Fitness Calls | Best Individual | Generations |
 | --------- | ------------- | --------------- | ----------- |
@@ -79,7 +81,7 @@ We can see the results are better.
 
 In this case the variation is really high.
 
-### PC-3 PS-3
+### PC-3
 
 | Iteration | Fitness Calls | Best Individual | Generations |
 | --------- | ------------- | --------------- | ----------- |
@@ -88,3 +90,60 @@ In this case the variation is really high.
 | 3         | 30004         | 0.41            | 5000       |
 | 4         | 30004         | 0.54            | 5000       |
 | 5         | 30004         | 0.40            | 5000       |
+
+### PC-5
+
+| Iteration | Fitness Calls | Best Individual | Generations |
+| --------- | ------------- | --------------- | ----------- |
+| 1         | 30004         | 0.42            | 5000       |
+| 2         | 30004         | 0.40            | 5000       |
+| 3         | 30004         | 0.15            | 5000       |
+| 4         | 30004         | 0.43            | 5000       |
+| 5         | 30004         | 0.42            | 5000       |
+
+### Conclusions
+
+The randomness of the algorithm makes it hard to predict the results.
+
+## Plots
+
+To better understand the algorithm we decided to plot the fitness of the best individual and the average fitness of the population at each generation.
+
+These are the results with the same parameters as above for the different PCs.
+
+### PC-1
+Best Individual in generations:
+![Alt text](imgs/pc1best1.png)
+
+Average fitness in generations:
+![Alt text](imgs/pc1avg1.png)
+
+We noticed that the best remain constant for many generations and then suddenly changes. This is probably due to the fact that the algorithm is stuck in a local maximum and then it finds a better one.
+
+### PC-2
+Best Individual in generations:
+![Alt text](imgs/pc2best1.png)
+
+Average fitness in generations:
+![Alt text](imgs/pc2avg1.png)
+
+Here the variation of the average is much more pronounced than in the previous case. 
+
+### PC-5
+Best Individual in generations:
+![Alt text](imgs/pc5best1.png)
+
+Average fitness in generations:
+![Alt text](imgs/pc5avg1.png)
+
+Here the algorithm finds a good solution in the first generations and then it gets stuck in a local maximum, so the average fitness remains really low.
+
+### PC-10
+
+Best Individual in generations:
+![Alt text](imgs/pc10best1.png)
+
+Average fitness in generations:
+![Alt text](imgs/pc10avg1.png)
+
+Here the algorithm needs a lot of time to find a good solution, and it is not great. The average fitness is too noisy to determine something.
