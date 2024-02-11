@@ -1,7 +1,6 @@
 # computational-intelligence
 All the code developed for the Computational Intelligence course held by Professor Giovanni Squillero at Politecnico di Torino.
 
-
 ## Laboratory 0: Set covering
 
 Resolved with A* search to find the solution with the least amount of sets possible. The heuristic function is the number of uncovered elements. The cost function is the number of sets used.
@@ -18,7 +17,11 @@ I want to complete this laboratory in the future, but I didn't have the time to 
 
 ## Laboratory 9: Genetic Algorithms
 
-Done in collaboration with @giovanni-violo
+Done in collaboration with @giovanni-violo. 
 
 Write a local-search algorithm (eg. an EA) able to solve the *Problem* instances 1, 2, 5, and 10 on a 1000-loci genomes, using a minimum number of fitness calls.
+
+## Lab 10: Tic Tac Toe with Reinforcement Learning
+
+Same as Nim.
 

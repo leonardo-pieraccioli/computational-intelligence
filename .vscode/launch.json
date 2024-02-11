@@ -8,7 +8,7 @@
             "name": "Python: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "Lab2_Nim\\main.py",
+            "program": "${fileDirname}/main.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }

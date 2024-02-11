@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./Lab10_TicTacToe_Minmax",
+        "./Lab10_TicTacToe_Minmax",
+        "./Lab10_TicTacToe_Minmax"
+    ]
+}

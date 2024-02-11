@@ -1,0 +1,1 @@
+Player <class 'random_agent.Random'>: 0, Player <class 'random_agent.Random'>: 0, Draws:5010
