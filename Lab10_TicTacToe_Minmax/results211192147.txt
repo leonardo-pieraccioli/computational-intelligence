@@ -1,1 +1,0 @@
-Player <class 'random_agent.Random'>: 2943, Player <class 'random_agent.Random'>: 1443, Draws:624

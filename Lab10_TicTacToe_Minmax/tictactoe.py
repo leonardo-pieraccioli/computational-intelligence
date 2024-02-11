@@ -4,6 +4,7 @@ import os
 import numpy as np
 from enum import Enum
 import matplotlib.pyplot as plt
+import logging
 
 from time import sleep
 from itertools import count, permutations
@@ -39,22 +40,27 @@ def update_stats(board:Environment, print_game):
     return True
 
 def print_board():
-    global TRAINING
     f=lambda x: ('x' if x==PLAYER0 else 'o') if x!=-1 else ' '
     f_vec=np.vectorize(f)
-    TRAINING=False
+
     os.system('cls')
     print(f"Player 0: {player0_wins}, Player 1: {player1_wins}, Draws:{draws}")
     print(f_vec(board.taken))
+    logging.debug(f"Player 0: {player0_wins}, Player 1: {player1_wins}, Draws:{draws}")
+    logging.debug(f_vec(board.taken))
     sleep(0.8)
 
-def play(player0, player1, max_games:int):
+def play(player0, player1, max_games:int, n_watch_games:int=5):
+    global player0_wins, player1_wins, draws
+    player0_wins=0
+    player1_wins=0
+    draws=0
     print_board()
     t = 0
     print_game = False
     while t < max_games:
         player0.step(board)
-        if t>max_games-5:
+        if t>max_games-n_watch_games:
             print_game = True
             print_board()
         if update_stats(board, print_game):
@@ -65,7 +71,7 @@ def play(player0, player1, max_games:int):
             continue
         
         player1.step(board)
-        if t>max_games-5:
+        if t>max_games-n_watch_games:
             print_game = True
             print_board()
         if update_stats(board, print_game):
