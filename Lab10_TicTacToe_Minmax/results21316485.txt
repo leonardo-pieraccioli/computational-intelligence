@@ -1,0 +1,1 @@
+Player <class 'random_agent.Random'>: 0, Player <class 'minmax_agent.Minmax'>: 82, Draws:18

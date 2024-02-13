@@ -1,72 +1,76 @@
-from copy import deepcopy
+from copy import copy
 from environment import Environment
 from itertools import permutations
 import numpy as np
 from parameters import *
+from tqdm.auto import tqdm
+from time import sleep
 
 MAGIC=np.array([1,6,5,8,4,0,3,2,7])
 class Minmax():
     def __init__(self, player):
         self.player = player
         self.board = []
+        self.rewards = [0, 0]
+        self.rewards[player] = 1
+        self.rewards[1-player] = -1
 
     def step(self, board: Environment):
-        self.board = board.taken.flatten()
-        not_taken = [index for index, value in enumerate(self.board) if value == -1]
+        self.board = [ -1 if x == -1 else x for x in board.taken.flatten()]
         best_eval = float("-inf")
-        
-        n_moves = len(not_taken)
-        for _ in range(n_moves):
-            move = not_taken.pop(0)
-            self.board[move] = self.player
-            eval = self.minmax(self.player, deepcopy(not_taken))
+        for index, cell in enumerate(self.board):
+            if cell != -1: continue
+            self.board[index] = self.player
+            eval = self.minmax(1-self.player, copy(self.board))             
             if eval > best_eval:
-                best = move
+                best_move = index
                 best_eval = eval
-            self.board[move] = -1
-            not_taken.append(move)
-        board.play(self.player, best)
+            self.board[index] = -1
+                
+        board.play(self.player, best_move)
+        #print(f"Player {self.player} plays {best_move} with an evaluation of {best_eval}")
+        #sleep(2)
     
-    
-    def minmax(self, player, not_taken):
-        winner = self.check_win()
-        if (winner == 0 and self.player == 0) or (winner == 1 and self.player == 1):
-            return 1
-        elif (winner == 1 and self.player == 0) or (winner == 0 and self.player == 1):
-            return -1
-        elif winner == DRAW:
-            return 0
-        else:
-            if player == self.player:
-                best = -2
-                while not_taken:
-                    next = not_taken.pop(0)
-                    self.board[next] = player
-                    best = max(best, self.minmax(1-self.player, deepcopy(not_taken)))
-                    self.board[next] = -1
-                return best
-            else:
-                best = 2
-                while not_taken:
-                    next = not_taken.pop(0)
-                    self.board[next] = player
-                    best = min(best, self.minmax(self.player, deepcopy(not_taken)))
-                    self.board[next] = -1
-                return best
+    def minmax(self, current_player: int, board: list):
+        result = self.check_win(board)
+        if result != None: return result
+        
+        other_player = 1 - current_player
+        best = float("-inf") if current_player == self.player else float("inf")
+        
+        for index, cell in enumerate(board):
+            if cell != -1: continue
+            board[index] = current_player
+            evaluation = self.minmax(other_player, copy(board))
+            board[index] = -1
             
-    def check_win(self):
-        player0 = []
-        player1 = []
-        for index, n in enumerate(self.board):
-            if n == self.player:
-                player0.append(MAGIC[index])
-            elif n == 1-self.player:
-                player1.append(MAGIC[index])
-        if np.any([np.sum(p)==12 for p in permutations(player0,3)]):
+            if current_player == self.player:
+                best = max(evaluation, best)
+            else:
+                best = min(evaluation, best)
+            
+        return best
+
+    def check_win(self, board):
+        """Check if the game is over and return the result. If the game is not over, return None."""
+        winner = None
+        for i in range(0, 9, 3):
+            if board[i] == board[i+1] == board[i+2] and board[i] != -1:
+                winner = board[i]
+    
+        for i in range(3):
+            if board[i] == board[i+3] == board[i+6] and board[i] != -1:
+                winner = board[i]
+            
+        if board[0] == board[4] == board[8] and board[4] != -1:
+            winner = board[4]
+        
+        if board[2] == board[4] == board[6] and board[4] != -1:
+            winner = board[4]
+        
+        if winner != None:
+            return self.rewards[winner]
+        
+        elif not any([cell == -1 for cell in board]):
             return 0
-        elif np.any([np.sum(p)==12 for p in permutations(player1,3)]):
-            return 1
-        elif len(player0) + len(player1) == 9:
-            return -1
-        else: 
-            return None
+        return None

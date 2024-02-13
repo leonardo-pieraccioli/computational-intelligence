@@ -13,7 +13,7 @@ from environment import Environment
 from parameters import *
 
 from datetime import datetime
-
+from tqdm.auto import tqdm
 board=Environment(win_reward=5,draw_reward=0, lose_reward=-3)
 
 player0_wins=0
@@ -48,7 +48,7 @@ def print_board():
     print(f_vec(board.taken))
     logging.debug(f"Player 0: {player0_wins}, Player 1: {player1_wins}, Draws:{draws}")
     logging.debug(f_vec(board.taken))
-    sleep(0.8)
+    sleep(0.3)
 
 def play(player0, player1, max_games:int, n_watch_games:int=5):
     global player0_wins, player1_wins, draws
@@ -58,11 +58,14 @@ def play(player0, player1, max_games:int, n_watch_games:int=5):
     print_board()
     t = 0
     print_game = False
+    # with tqdm(total=max_games) as pbar:
     while t < max_games:
         player0.step(board)
-        if t>max_games-n_watch_games:
+        if t>=max_games-n_watch_games:
             print_game = True
             print_board()
+            # input()
+            
         if update_stats(board, print_game):
             if print_game: sleep(0.5)
             board.reset()
@@ -71,15 +74,19 @@ def play(player0, player1, max_games:int, n_watch_games:int=5):
             continue
         
         player1.step(board)
-        if t>max_games-n_watch_games:
+        # a = input()
+        # board.play(1, int(a))
+        if t>=max_games-n_watch_games:
             print_game = True
             print_board()
+            # input()  
+            
         if update_stats(board, print_game):
             if print_game: sleep(0.5)
             board.reset()
             print_game = False
             t+=1
             continue
-
+            #pbar.update(1)
     f = open(f'Lab10_TicTacToe_Minmax/results{datetime.now().month}{datetime.now().day}{datetime.now().hour}{datetime.now().minute}{datetime.now().second}.txt', "a")
     f.write(f"Player {type(player0)}: {player0_wins}, Player {type(player1)}: {player1_wins}, Draws:{draws}\n")
