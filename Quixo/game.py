@@ -39,8 +39,16 @@ class Game(object):
 
     def print(self):
         '''Prints the board. -1 are neutral pieces, 0 are pieces of player 0, 1 pieces of player 1'''
-        print(self._board)
-
+        for row in self._board:
+            for cell in row:
+                if cell == -1:
+                    print('⬜️', end=' ')
+                elif cell == 0:
+                    print('❌', end=' ')
+                elif cell == 1:
+                    print('⭕️', end=' ')
+            print()
+                    
     def check_winner(self) -> int:
         '''Check the winner. Returns the player ID of the winner if any, otherwise returns -1'''
         # for each row

@@ -1,7 +1,8 @@
 import random
 from game import Game, Move, Player
+import numpy as np
 
-class Batman(Player):
+class RandomPlayer(Player):
     def __init__(self) -> None:
         super().__init__()
 
