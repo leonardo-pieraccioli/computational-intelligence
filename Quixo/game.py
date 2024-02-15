@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from copy import deepcopy
 from enum import Enum
 import numpy as np
+from time import sleep
+import os
 
 # Rules on PDF
 
@@ -28,8 +30,10 @@ class Player(ABC):
 
 
 class Game(object):
-    def __init__(self) -> None:
-        self._board = np.ones((5, 5), dtype=np.uint8) * -1
+    def __init__(self, board=None) -> None:
+        if board is None: self._board = np.ones((5, 5), dtype=np.uint8) * -1
+        else: self._board = board
+        self._prev_board = None
 
     def get_board(self):
         '''
@@ -79,7 +83,7 @@ class Game(object):
             return self._board[0, -1]
         return -1
 
-    def play(self, player1: Player, player2: Player) -> int:
+    def play(self, player1: Player, player2: Player, watch=False) -> int:
         '''Play the game. Returns the winning player'''
         players = [player1, player2]
         current_player_idx = 1
@@ -90,21 +94,28 @@ class Game(object):
             ok = False
             while not ok:
                 from_pos, slide = players[current_player_idx].make_move(self)
-                ok = self.__move(from_pos, slide, current_player_idx)
+                ok = self.move(from_pos, slide, current_player_idx)
             winner = self.check_winner()
+            if watch:
+                os.system('cls' if os.name == 'nt' else 'clear')
+                self.print()
+                print(f"Player {current_player_idx} moved")
+                sleep(1)
+                
         return winner
 
-    def __move(self, from_pos: tuple[int, int], slide: Move, player_id: int) -> bool:
+    def move(self, from_pos: tuple[int, int], slide: Move, player_id: int) -> bool:
         '''Perform a move'''
         if player_id > 2:
             return False
+        
         # Oh God, Numpy arrays
-        prev_value = deepcopy(self._board[(from_pos[1], from_pos[0])])
-        acceptable = self.__take((from_pos[1], from_pos[0]), player_id)
+        prev_value = deepcopy(self._board[(from_pos[0], from_pos[1])])
+        acceptable = self.__take((from_pos[0], from_pos[1]), player_id)
         if acceptable:
-            acceptable = self.__slide((from_pos[1], from_pos[0]), slide)
+            acceptable = self.__slide((from_pos[0], from_pos[1]), slide)
             if not acceptable:
-                self._board[(from_pos[1], from_pos[0])] = deepcopy(prev_value)
+                self._board[(from_pos[0], from_pos[1])] = deepcopy(prev_value)
         return acceptable
 
     def __take(self, from_pos: tuple[int, int], player_id: int) -> bool:
@@ -204,3 +215,7 @@ class Game(object):
                 # move the piece down
                 self._board[(self._board.shape[0] - 1, from_pos[1])] = piece
         return acceptable
+
+    def undo(self, board): 
+        self._board = deepcopy(board)
+        return self._board
