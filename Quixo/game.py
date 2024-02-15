@@ -100,7 +100,6 @@ class Game(object):
                 os.system('cls' if os.name == 'nt' else 'clear')
                 self.print()
                 print(f"Player {current_player_idx} moved")
-                sleep(1)
                 
         return winner
 

@@ -3,96 +3,11 @@ import random
 from copy import deepcopy
 import numpy as np
 from tqdm.auto import tqdm
-from time import sleep
+from time import sleep, time
+from scipy.signal import convolve2d
 
-# evalutations 
-E_WIN = 30
-E_LOOSE = -30
+from mm_utils import *
 
-# all possible moves
-MOVES = {
-    #corner moves
-    (0, 0): [Move.BOTTOM, Move.RIGHT],
-    (0, 4): [Move.BOTTOM, Move.LEFT],
-    (4, 0): [Move.TOP, Move.RIGHT],
-    (4, 4): [Move.TOP, Move.LEFT],
-    
-    # high border moves
-    (0, 1): [Move.BOTTOM, Move.RIGHT, Move.LEFT],
-    (0, 2): [Move.BOTTOM, Move.RIGHT, Move.LEFT],
-    (0, 3): [Move.BOTTOM, Move.RIGHT, Move.LEFT],
-    
-    # low border moves
-    (4, 1): [Move.TOP, Move.RIGHT, Move.LEFT],
-    (4, 2): [Move.TOP, Move.RIGHT, Move.LEFT],
-    (4, 3): [Move.TOP, Move.RIGHT, Move.LEFT],
-    
-    # left border moves
-    (1, 0): [Move.BOTTOM, Move.TOP, Move.RIGHT],
-    (2, 0): [Move.BOTTOM, Move.TOP, Move.RIGHT],
-    (3, 0): [Move.BOTTOM, Move.TOP, Move.RIGHT],
-    
-    # right border moves
-    (1, 4): [Move.BOTTOM, Move.TOP, Move.LEFT],
-    (2, 4): [Move.BOTTOM, Move.TOP, Move.LEFT],
-    (3, 4): [Move.BOTTOM, Move.TOP, Move.LEFT],
-}
-
-OLD_ARRAY_MOVES = [
-    # corner moves
-    ((0, 0), Move.BOTTOM), 
-    ((0, 0), Move.RIGHT),
-    ((0, 4), Move.BOTTOM),
-    ((0, 4), Move.LEFT),
-    ((4, 0), Move.TOP),
-    ((4, 0), Move.RIGHT),
-    ((4, 4), Move.TOP),
-    ((4, 4), Move.LEFT),
-    
-    # high border moves
-    ((0, 1), Move.BOTTOM),
-    ((0, 2), Move.BOTTOM),
-    ((0, 3), Move.BOTTOM),
-    ((0, 1), Move.RIGHT),
-    ((0, 2), Move.RIGHT),
-    ((0, 3), Move.RIGHT),
-    ((0, 1), Move.LEFT),
-    ((0, 2), Move.LEFT),
-    ((0, 3), Move.LEFT),
-    
-    # low border moves
-    ((4, 1), Move.TOP),
-    ((4, 2), Move.TOP),
-    ((4, 3), Move.TOP),
-    ((4, 1), Move.LEFT),
-    ((4, 2), Move.LEFT),
-    ((4, 3), Move.LEFT),
-    ((4, 1), Move.RIGHT),
-    ((4, 2), Move.RIGHT),
-    ((4, 3), Move.RIGHT),
-    
-    # left border moves
-    ((1, 0), Move.RIGHT),
-    ((2, 0), Move.RIGHT),
-    ((3, 0), Move.RIGHT),
-    ((1, 0), Move.BOTTOM),
-    ((2, 0), Move.BOTTOM),
-    ((3, 0), Move.BOTTOM),
-    ((1, 0), Move.TOP),
-    ((2, 0), Move.TOP),
-    ((3, 0), Move.TOP),
-    
-    # right border moves
-    ((1, 4), Move.LEFT),
-    ((2, 4), Move.LEFT),
-    ((3, 4), Move.LEFT),
-    ((1, 4), Move.TOP),
-    ((2, 4), Move.TOP),
-    ((3, 4), Move.TOP),
-    ((1, 4), Move.BOTTOM),
-    ((2, 4), Move.BOTTOM),
-    ((3, 4), Move.BOTTOM),
-    ]
 class MinmaxPlayer(Player):
     def __init__(self, player_id, max_depth=2) -> None:
         super().__init__()
@@ -101,6 +16,8 @@ class MinmaxPlayer(Player):
         self._max_depth = max_depth
 
     def make_move(self, game: 'Game') -> tuple[tuple[int, int], Move]:
+        start_time = time()
+        
         board = game.get_board()
         # g = Game(board)
         best = float("-inf")
@@ -112,29 +29,37 @@ class MinmaxPlayer(Player):
             
             for slide in slides:
                 ok = game.move(piece, slide, self._player_id)
-                # print("Depth: 0, Tento mossa")
+                # print(f"Depth: 0, Try move: {piece} {slide}")
                 # game.print()
 
                 assert ok == True, f'Invalid move, cell: {piece} move: {slide} something is wrong with the MOVES array.'
                 prev_board = deepcopy(board)
-                evaluation = self._minmax(self._max_depth, 1 - self._player_id, game)
+                evaluation = self.__minmax(self._max_depth, 1 - self._player_id, game)
                 game.undo(prev_board)
-                # print("Depth: 0, Mossa annullata")
+                # print(f"Depth: 0, Cancel move: {piece} {slide}")
                 # game.print()
                 
                 if evaluation > best:
                     best = evaluation
                     best_move = (piece, slide)
             # pbar.update(1)
+        print(f'Best move: {best_move} with evaluation: {best}')
+        game.print()
         assert best != float("-inf") and best != float('inf'), "No move evaluated, or wrong init of best."
-        # print(best_move)
+        print(f'time elapsed: {time() - start_time}')
         return best_move[0], best_move[1]
     
-    def _minmax(self, depth: int, current_player_id: int, game: Game) -> int:
+    def __minmax(self, depth: int, current_player_id: int, game: Game) -> int:
+        '''Minmax algorithm. Returns the score of the board for the minmax player. The higher the better.'''
         board = game.get_board()
-        winner = self._check_winner(board)
-        if depth == 0 or winner != -1:
-            return self._evaluate(winner, board)
+        winner = self.__check_winner(board)
+        if depth == 0 or winner != -1:            
+            eval = self.__evaluate(winner, board, current_player_id)
+            
+            print(f'Eval: {eval}')
+            game.print()
+
+            return eval
         
         other_player = 1 - current_player_id
         best = float("-inf") if current_player_id == self._player_id else float("inf")
@@ -143,27 +68,35 @@ class MinmaxPlayer(Player):
             if board[piece] != -1 and board[piece] != current_player_id: continue
             
             for slide in slides:
-                # print(f"Depth: {depth}, Tento mossa: {piece} {slide}")
+                # print(f"Depth: {depth}, Try move {piece} {slide}")
                 ok = game.move(piece, slide, current_player_id)
                 # game.print()
                 
                 assert ok == True, f'Invalid move, cell: {piece} move: {slide}'
                 prev_board = deepcopy(board)
-                evaluation = self._minmax(depth - 1, other_player, game)
+                
+                evaluation = self.__minmax(depth - 1, other_player, game)
+                # print(f"Player {current_player_id}, Move: {piece} {slide}, Evaluation: {evaluation}")
+                # game.print()
+                # sleep(1)
                 
                 game.undo(prev_board)
-                # print(f"Depth: {depth}, Mossa annullata: {piece} {slide}")
+                # print(f"Depth: {depth}, Cancel move: {piece} {slide}")
                 # game.print()
-            
-            if current_player_id == self._player_id:
-                best = max(evaluation, best)
-            else:
-                best = min(evaluation, best)
 
+                if current_player_id == self._player_id:
+                    best = max(evaluation, best)
+                else:
+                    best = min(evaluation, best)
+                
+                
         assert best != float("-inf") and best != float('inf'), "No move evaluated, or wrong init of best."
+        
         return best
 
-    def _evaluate(self, winner: int, board) -> int:
+    def __evaluate(self, winner: int, board, current_player: int) -> int:
+        '''Evaluate a state. Returns the score of the board for the minmax player. The higher the better.'''
+        
         # if there is a winner
         if winner == self._player_id:
             return E_WIN
@@ -171,18 +104,72 @@ class MinmaxPlayer(Player):
             return -E_LOOSE
         
         # if the same state has already been evaluated
-        board_str = ''.join([str(cell) for cell in board.flatten()])
-        if board_str in self._eval_states: # add symmetries
-            return self._eval_states[board_str]
+        board_str = ''.join([str(cell if cell != -1 else ' ') for cell in board.flatten()])
+        board_str_90 = self.__rot90_string(board_str)
+        board_str_180 = self.__rot90_string(board_str_90)
+        board_str_270 = self.__rot90_string(board_str_180)
+        board_str_inverted = self.__invert_players(board_str)
+        
+        for bstr in [board_str, board_str_90, board_str_180, board_str_270, board_str_inverted]:
+            if bstr in self._eval_states: # add symmetries
+                return self._eval_states[bstr]
         
         # evaluation 1: count the number of pieces of the player
-        player_pieces = (board == self._player_id).sum()
+        player_pieces = 0 # (board == self._player_id).sum()
         
         # evalutation 2: count the number of pieces in a row/column/diagonal for the player
+        count4 = self.__count_consecutive(board, self._player_id, 4)
+        count3 = self.__count_consecutive(board, self._player_id, 3) - count4
+        count2 = self.__count_consecutive(board, self._player_id, 2) - count3
         
-        return player_pieces
+        # evaluation 3: count the number of pieces in a row/column/diagonal for the opponent
+        count4_opponent = self.__count_consecutive(board, 1 - self._player_id, 4)
+        count3_opponent = self.__count_consecutive(board, 1 - self._player_id, 3) - count4_opponent
+        count2_opponent = self.__count_consecutive(board, 1 - self._player_id, 2) - count3_opponent
+        
+        # total evaluation
+        evaluation = player_pieces * E_PLAYER_PIECES + count4 * E_PLAYER_COUNT_4 + count3 * E_PLAYER_COUNT_3 - count4_opponent * E_OPPONENT_COUNT_4 - count3_opponent * E_OPPONENT_COUNT_3 + count2 * E_PLAYER_COUNT_2 - count2_opponent * E_OPPONENT_COUNT_2
+        self._eval_states[board_str] = evaluation
+        
+        if self._player_id == current_player:
+            return evaluation
+        return -evaluation
+    
+    def __count_consecutive(self, matrix, value, length):
+        '''Count the number of consecutive values in a row, column or diagonal of a matrix'''
+        
+        # Create a filter for convolution
+        filter_horizontal = np.ones((1, length))
+        filter_vertical = np.ones((length, 1))
+        filter_diagonal1 = np.eye(length)
+        filter_diagonal2 = np.fliplr(filter_diagonal1)
+        
+        # Create a binary matrix for the given value
+        binary_matrix = (matrix == value).astype(int)
 
-    def _check_winner(self, board) -> int:
+        # Convolve the binary matrix with the filters
+        horizontal = convolve2d(binary_matrix, filter_horizontal, mode='valid')
+        vertical = convolve2d(binary_matrix, filter_vertical, mode='valid')
+        diagonal1 = convolve2d(binary_matrix * np.eye(binary_matrix.shape[0], dtype=int), filter_diagonal1, mode='valid')
+        diagonal2 = convolve2d(binary_matrix * np.fliplr(np.eye(binary_matrix.shape[0], dtype=int)), filter_diagonal2, mode='valid')
+
+        # # Count the number of times the length appears in the convolutions
+        count = 0
+        for conv in [horizontal, vertical, diagonal1, diagonal2]:
+            count += np.count_nonzero(conv == length)
+    
+        return count
+    
+    def __rot90_string(self, mat_str: str) -> str:
+        '''Rotates the matrix string by 90 degrees'''
+        mat_rot = [mat_str[i+5*j] for i in range(5) for j in range(5)]
+        return ''.join(mat_rot)
+    
+    def __invert_players(self, board: str) -> str:
+        '''Inverts the players in the matrix string'''
+        return ''.join([str(1 - int(cell)) for cell in board if cell != ' '])
+    
+    def __check_winner(self, board) -> int:
         '''Check the winner. Returns the player ID of the winner if any, otherwise returns -1'''
         # for each row
         for x in range(board.shape[0]):
