@@ -1,34 +1,25 @@
 from game import Game
 from random_player import RandomPlayer
 from minmax_player import MinmaxPlayer
+from human_player import HumanPlayer
 import time as t
-import tqdm.auto as tqdm
 
-start_time = t.time()
 NUM_GAMES = 10
 win = [0, 0]
 
-g = Game()
-winner = g.play(MinmaxPlayer(0), RandomPlayer())
-print(f'time elapsed: {t.time() - start_time}')
-# with tqdm.trange(NUM_GAMES) as pbar:
-#     for _ in range(NUM_GAMES):
-#         g = Game()
-#         winner = g.play(MinmaxPlayer(0), RandomPlayer())
-#         win[winner] += 1
-#         pbar.update(1)
+# g = Game()
+# winner = g.play(MinmaxPlayer(0), HumanPlayer(), True)
 
-# win_rate = win[0] / NUM_GAMES
-# print(win_rate)
+win1 = 0
+for _ in range(NUM_GAMES):
+    g = Game()
+    win1 += g.play(MinmaxPlayer(0, 1), RandomPlayer())
+    t.sleep(1)
 
-# win = [0, 0]
-# with tqdm.trange(NUM_GAMES) as pbar:
-#     for _ in range(10):
-#         g = Game()
-#         winner = g.play(RandomPlayer(), MinmaxPlayer(1))
-#         win[winner] += 1
-#         pbar.update(1)
+win2 = 0
+for _ in range(NUM_GAMES):
+    g = Game()
+    win2 += g.play(MinmaxPlayer(1, 2), MinmaxPlayer(1, 1))
+    t.sleep(1)
 
-# win_rate = win[1] / NUM_GAMES
-# print(win_rate)
-
+print(win1, win2)

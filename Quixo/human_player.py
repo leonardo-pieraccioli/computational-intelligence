@@ -1,6 +1,5 @@
 from game import Game, Move, Player
 import os
-from random_player import RandomPlayer
 
 # Added to understand the game and play against my AI
 
@@ -26,7 +25,7 @@ class HumanPlayer(Player):
         print("Take a piece from the border: ")
         while col < 0 or col > 5: col = int(input("Col: "))
         while row < 0 or row > 5: row = int(input("Row: "))
-        from_pos = (col-1, row-1)
+        from_pos = (row-1, col-1)
         
         print("Move it to: ")
         move = int(input("1. Top\n2. Bottom\n3. Left\n4. Right\n"))
@@ -35,11 +34,3 @@ class HumanPlayer(Player):
         if move == 3: return from_pos, Move.LEFT
         if move == 4: return from_pos, Move.RIGHT
         assert False, "Invalid move"
-    
-    
-g = Game()
-player1 = RandomPlayer()
-player2 = HumanPlayer()
-winner = g.play(player1, player2)
-g.print()
-print(f"Winner: Player {winner}")

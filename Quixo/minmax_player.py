@@ -1,13 +1,12 @@
 from game import Game, Move, Player
-import random
 from copy import deepcopy
 import numpy as np
-from tqdm.auto import tqdm
 from time import sleep, time
 from scipy.signal import convolve2d
-
 from mm_utils import *
 
+PLAYER0 = '❌'
+PLAYER1 = '⭕️'
 class MinmaxPlayer(Player):
     def __init__(self, player_id, max_depth=2) -> None:
         super().__init__()
@@ -16,49 +15,46 @@ class MinmaxPlayer(Player):
         self._max_depth = max_depth
 
     def make_move(self, game: 'Game') -> tuple[tuple[int, int], Move]:
-        start_time = time()
-        
+        # start_time = time()
         board = game.get_board()
         # g = Game(board)
         best = float("-inf")
         best_move = None
         
-        # with tqdm(total=len(MOVES)) as pbar:
         for piece, slides in MOVES.items():
             if board[piece] != -1 and board[piece] != self._player_id: continue
             
             for slide in slides:
-                ok = game.move(piece, slide, self._player_id)
-                # print(f"Depth: 0, Try move: {piece} {slide}")
+                ok = game.move((piece[1], piece[0]), slide, self._player_id)
+                # print(f"Try move: {piece} {slide}")
                 # game.print()
 
                 assert ok == True, f'Invalid move, cell: {piece} move: {slide} something is wrong with the MOVES array.'
                 prev_board = deepcopy(board)
-                evaluation = self.__minmax(self._max_depth, 1 - self._player_id, game)
+                evaluation = self.__minmax(self._max_depth, 1 - self._player_id, game, float("-inf"), float("inf"))
                 game.undo(prev_board)
-                # print(f"Depth: 0, Cancel move: {piece} {slide}")
+                # print(f"Cancel move: {piece} {slide}")
                 # game.print()
                 
                 if evaluation > best:
                     best = evaluation
                     best_move = (piece, slide)
-            # pbar.update(1)
-        print(f'Best move: {best_move} with evaluation: {best}')
-        game.print()
+
+        # game.print()
+        # print(f'this state is evaluated: {self.__evaluate(-1, game.get_board(), self._player_id)}')
+        # print(f'Player: {PLAYER0 if self._player_id == 0 else PLAYER1}, Best move: {best_move}, with evaluation: {best}')
         assert best != float("-inf") and best != float('inf'), "No move evaluated, or wrong init of best."
-        print(f'time elapsed: {time() - start_time}')
-        return best_move[0], best_move[1]
+        # print(f'time elapsed: {time() - start_time}')
+        return (best_move[0][1], best_move[0][0]), best_move[1]
     
-    def __minmax(self, depth: int, current_player_id: int, game: Game) -> int:
+    def __minmax(self, depth: int, current_player_id: int, game: Game, alpha: int, beta: int) -> int:
         '''Minmax algorithm. Returns the score of the board for the minmax player. The higher the better.'''
         board = game.get_board()
         winner = self.__check_winner(board)
         if depth == 0 or winner != -1:            
             eval = self.__evaluate(winner, board, current_player_id)
-            
-            print(f'Eval: {eval}')
-            game.print()
-
+            # print(f'Eval: {eval}')
+            # game.print()
             return eval
         
         other_player = 1 - current_player_id
@@ -69,13 +65,12 @@ class MinmaxPlayer(Player):
             
             for slide in slides:
                 # print(f"Depth: {depth}, Try move {piece} {slide}")
-                ok = game.move(piece, slide, current_player_id)
-                # game.print()
-                
+                ok = game.move((piece[1], piece[0]), slide, current_player_id)
                 assert ok == True, f'Invalid move, cell: {piece} move: {slide}'
+                # game.print()
                 prev_board = deepcopy(board)
                 
-                evaluation = self.__minmax(depth - 1, other_player, game)
+                evaluation = self.__minmax(depth - 1, other_player, game, alpha, beta)
                 # print(f"Player {current_player_id}, Move: {piece} {slide}, Evaluation: {evaluation}")
                 # game.print()
                 # sleep(1)
@@ -86,10 +81,15 @@ class MinmaxPlayer(Player):
 
                 if current_player_id == self._player_id:
                     best = max(evaluation, best)
+                    alpha = max(alpha, best)
+                    if beta <= alpha:
+                        break
                 else:
                     best = min(evaluation, best)
-                
-                
+                    beta = min(beta, best)
+                    if beta <= alpha:
+                        break
+                    
         assert best != float("-inf") and best != float('inf'), "No move evaluated, or wrong init of best."
         
         return best
@@ -115,20 +115,23 @@ class MinmaxPlayer(Player):
                 return self._eval_states[bstr]
         
         # evaluation 1: count the number of pieces of the player
-        player_pieces = 0 # (board == self._player_id).sum()
+        player_pieces = (board == self._player_id).sum()
         
         # evalutation 2: count the number of pieces in a row/column/diagonal for the player
         count4 = self.__count_consecutive(board, self._player_id, 4)
         count3 = self.__count_consecutive(board, self._player_id, 3) - count4
-        count2 = self.__count_consecutive(board, self._player_id, 2) - count3
+        count2 = self.__count_consecutive(board, self._player_id, 2) - count3 - count4*2
         
         # evaluation 3: count the number of pieces in a row/column/diagonal for the opponent
         count4_opponent = self.__count_consecutive(board, 1 - self._player_id, 4)
         count3_opponent = self.__count_consecutive(board, 1 - self._player_id, 3) - count4_opponent
-        count2_opponent = self.__count_consecutive(board, 1 - self._player_id, 2) - count3_opponent
+        count2_opponent = self.__count_consecutive(board, 1 - self._player_id, 2) - count3_opponent - count4_opponent*2
         
         # total evaluation
-        evaluation = player_pieces * E_PLAYER_PIECES + count4 * E_PLAYER_COUNT_4 + count3 * E_PLAYER_COUNT_3 - count4_opponent * E_OPPONENT_COUNT_4 - count3_opponent * E_OPPONENT_COUNT_3 + count2 * E_PLAYER_COUNT_2 - count2_opponent * E_OPPONENT_COUNT_2
+        pos_evaluation = count4 * E_PLAYER_COUNT_4 + count3 * E_PLAYER_COUNT_3  + count2 * E_PLAYER_COUNT_2 + player_pieces * E_PLAYER_PIECES
+        neg_evaluation = - count4_opponent * E_OPPONENT_COUNT_4 - count3_opponent * E_OPPONENT_COUNT_3 - count2_opponent * E_OPPONENT_COUNT_2
+        evaluation = pos_evaluation + neg_evaluation
+        
         self._eval_states[board_str] = evaluation
         
         if self._player_id == current_player:
