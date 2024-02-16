@@ -16,31 +16,26 @@ E_PLAYER_PIECES = 0.1
 
 # all possible moves
 MOVES = {
-    #corner moves
     (0, 0): [Move.BOTTOM, Move.RIGHT],
-    (0, 4): [Move.BOTTOM, Move.LEFT],
-    (4, 0): [Move.TOP, Move.RIGHT],
-    (4, 4): [Move.TOP, Move.LEFT],
-    
-    # high border moves
     (0, 1): [Move.BOTTOM, Move.RIGHT, Move.LEFT],
     (0, 2): [Move.BOTTOM, Move.RIGHT, Move.LEFT],
     (0, 3): [Move.BOTTOM, Move.RIGHT, Move.LEFT],
-    
-    # low border moves
+    (0, 4): [Move.BOTTOM, Move.LEFT],
+
+    (1, 0): [Move.BOTTOM, Move.TOP, Move.RIGHT],
+    (1, 4): [Move.BOTTOM, Move.TOP, Move.LEFT],
+
+    (2, 0): [Move.BOTTOM, Move.TOP, Move.RIGHT],
+    (2, 4): [Move.BOTTOM, Move.TOP, Move.LEFT],
+
+    (3, 0): [Move.BOTTOM, Move.TOP, Move.RIGHT],
+    (3, 4): [Move.BOTTOM, Move.TOP, Move.LEFT],
+
+    (4, 0): [Move.TOP, Move.RIGHT],
     (4, 1): [Move.TOP, Move.RIGHT, Move.LEFT],
     (4, 2): [Move.TOP, Move.RIGHT, Move.LEFT],
     (4, 3): [Move.TOP, Move.RIGHT, Move.LEFT],
-    
-    # left border moves
-    (1, 0): [Move.BOTTOM, Move.TOP, Move.RIGHT],
-    (2, 0): [Move.BOTTOM, Move.TOP, Move.RIGHT],
-    (3, 0): [Move.BOTTOM, Move.TOP, Move.RIGHT],
-    
-    # right border moves
-    (1, 4): [Move.BOTTOM, Move.TOP, Move.LEFT],
-    (2, 4): [Move.BOTTOM, Move.TOP, Move.LEFT],
-    (3, 4): [Move.BOTTOM, Move.TOP, Move.LEFT],
+    (4, 4): [Move.TOP, Move.LEFT],
 }
 
 
