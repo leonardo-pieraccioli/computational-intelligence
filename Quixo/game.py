@@ -109,12 +109,12 @@ class Game(object):
             return False
         
         # Oh God, Numpy arrays
-        prev_value = deepcopy(self._board[(from_pos[0], from_pos[1])])
-        acceptable = self.__take((from_pos[0], from_pos[1]), player_id)
+        prev_value = deepcopy(self._board[(from_pos[1], from_pos[0])])
+        acceptable = self.__take((from_pos[1], from_pos[0]), player_id)
         if acceptable:
-            acceptable = self.__slide((from_pos[0], from_pos[1]), slide)
+            acceptable = self.__slide((from_pos[1], from_pos[0]), slide)
             if not acceptable:
-                self._board[(from_pos[0], from_pos[1])] = deepcopy(prev_value)
+                self._board[(from_pos[1], from_pos[0])] = deepcopy(prev_value)
         return acceptable
 
     def __take(self, from_pos: tuple[int, int], player_id: int) -> bool:
