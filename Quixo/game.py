@@ -30,9 +30,8 @@ class Player(ABC):
 
 
 class Game(object):
-    def __init__(self, board=None) -> None:
-        if board is None: self._board = np.ones((5, 5), dtype=np.uint8) * -1
-        else: self._board = board
+    def __init__(self) -> None:
+        self._board = np.ones((5, 5), dtype=np.uint8) * -1
         self._prev_board = None
 
     def get_board(self):
