@@ -2,7 +2,6 @@
 
 For the project I sumbitted a Minmax solution with alpha beta pruning. 
 
-
 ## How to run the game
 
 To run the game you need to launch the main.py file. By changing the players in the main file you can play against the AI or watch the AI play against itself. The game is played in the terminal.

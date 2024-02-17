@@ -55,6 +55,7 @@ class MinmaxPlayer(Player):
             eval = self.__evaluate(winner, board, current_player_id)
             # print(f'Eval: {eval}')
             # game.print()
+            # sleep(1)
             return eval
         
         other_player = 1 - current_player_id
@@ -71,9 +72,7 @@ class MinmaxPlayer(Player):
                 prev_board = deepcopy(board)
                 
                 evaluation = self.__minmax(depth - 1, other_player, game, alpha, beta)
-                # print(f"Player {current_player_id}, Move: {piece} {slide}, Evaluation: {evaluation}")
-                # game.print()
-                # sleep(1)
+                
                 
                 game.undo(prev_board)
                 # print(f"Depth: {depth}, Cancel move: {piece} {slide}")
@@ -112,6 +111,8 @@ class MinmaxPlayer(Player):
         
         for bstr in [board_str, board_str_90, board_str_180, board_str_270, board_str_inverted]:
             if bstr in self._eval_states: # add symmetries
+                if bstr == board_str_inverted:
+                    return -self._eval_states[bstr]
                 return self._eval_states[bstr]
         
         # evaluation 1: count the number of pieces of the player
@@ -119,13 +120,13 @@ class MinmaxPlayer(Player):
         
         # evalutation 2: count the number of pieces in a row/column/diagonal for the player
         count4 = self.__count_consecutive(board, self._player_id, 4)
-        count3 = self.__count_consecutive(board, self._player_id, 3) - count4
-        count2 = self.__count_consecutive(board, self._player_id, 2) - count3 - count4*2
+        count3 = self.__count_consecutive(board, self._player_id, 3) if count4 == 0 else 0
+        count2 = self.__count_consecutive(board, self._player_id, 2) if count4 == 0 and count3 == 0 else 0
         
         # evaluation 3: count the number of pieces in a row/column/diagonal for the opponent
-        count4_opponent = self.__count_consecutive(board, 1 - self._player_id, 4)
-        count3_opponent = self.__count_consecutive(board, 1 - self._player_id, 3) - count4_opponent
-        count2_opponent = self.__count_consecutive(board, 1 - self._player_id, 2) - count3_opponent - count4_opponent*2
+        count4_opponent = self.__count_consecutive(board, 1 - self._player_id, 4) 
+        count3_opponent = self.__count_consecutive(board, 1 - self._player_id, 3) - count4_opponent if count4_opponent == 0 else 0
+        count2_opponent = self.__count_consecutive(board, 1 - self._player_id, 2) - count4_opponent - count3_opponent if count4_opponent == 0 and count3_opponent == 0 else 0
         
         # total evaluation
         pos_evaluation = count4 * E_PLAYER_COUNT_4 + count3 * E_PLAYER_COUNT_3  + count2 * E_PLAYER_COUNT_2 + player_pieces * E_PLAYER_PIECES
@@ -133,10 +134,7 @@ class MinmaxPlayer(Player):
         evaluation = pos_evaluation + neg_evaluation
         
         self._eval_states[board_str] = evaluation
-        
-        if self._player_id == current_player:
-            return evaluation
-        return -evaluation
+        return evaluation
     
     def __count_consecutive(self, matrix, value, length):
         '''Count the number of consecutive values in a row, column or diagonal of a matrix'''
