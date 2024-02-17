@@ -119,7 +119,7 @@ Average fitness in generations:
 
 ![Alt text](imgs/pc1avg1.png)
 
-We noticed that the best remain constant for many generations and then suddenly changes. This is probably due to the fact that the algorithm is stuck in a local maximum and then it finds a better one.
+We noticed that the best remain constant for many generations and then suddenly changes. This is probably due to the fact that the algorithm is stuck in a local maximum and then it suddendly finds a better one.
 
 ### PC-2
 Best Individual in generations:
